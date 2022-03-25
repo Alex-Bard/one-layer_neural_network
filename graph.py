@@ -11,16 +11,16 @@ class Ui(QtWidgets.QMainWindow, Form):
     def __init__(self):
         super(Ui, self).__init__()
         self.setupUi(self)
-        self.canvas = QtGui.QPixmap(self.label.size())
-        self.canvas.fill(Qt.white)
-        self.label.setPixmap(self.canvas)
+        # self.canvas = QtGui.QPixmap(self.label.size())
+        # self.canvas.fill(Qt.white)
+        # self.label.setPixmap(self.canvas)
         self.drawing = False
         self.brushColor = Qt.black
         self.brushSize = 3
         self.lastPoint = QPoint()
         self.pushButton_2.clicked.connect(self.save)
         self.pushButton_3.clicked.connect(self.clear)
-        self.horizontalSlider.valueChanged.connect(self.bruh)
+        # self.horizontalSlider.valueChanged.connect(self.bruh)
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
