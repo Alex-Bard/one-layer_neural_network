@@ -1,4 +1,4 @@
-
+from businessLogic.Neuron import Neuron
 
 class NeuralNetwork(object):
     neurons = []

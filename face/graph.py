@@ -1,53 +1,130 @@
+from functools import partial
+
 from IPython.core.inputtransformer2 import tr
 from PyQt5 import uic, QtWidgets, QtGui
 from PyQt5.QtCore import Qt, QPoint
 from PyQt5.QtGui import QPainter, QPen
-from PyQt5.QtWidgets import QApplication, QFileDialog, QVBoxLayout
+from PyQt5.QtWidgets import QApplication, QFileDialog, QVBoxLayout, QDialog, QMessageBox
 from PyQt5.QtGui import QImage
+import io
+
 
 from businessLogic.NeuralNetwork import NeuralNetwork
+from pesistenseLayer.MatrixSaver import MatrixSaver
 
 Form, _ = uic.loadUiType('face/form_gr.ui')
 
 
 class Ui(QtWidgets.QMainWindow, Form):
+    matrixSaver = MatrixSaver()
     neuralNetwork = None
+    placeForDrawing = [[],[]]
+    neuronNames = []
+    placeWidth = 5
+    placeHeight = 7
 
     def __init__(self):
         super(Ui, self).__init__()
         self.setupUi(self)
         self.loadButton.clicked.connect(self.loadNueronNames)
+        self.initDrowingPlase()
+        self.cleanPitureButton.clicked.connect(self.clean)
+        self.savePictureButton.clicked.connect(self.savePicture)
+        self.LoadPictureButton.clicked.connect(self.loadPicture)
+
+        self.recognizeForLerningButton.clicked.connect(self.recognizeForLerning)
+        self.punishButton.clicked.connect(self.punishNeuron)
+        self.recognizeButton.clicked.connect(self.recognize)
+
         # self.pushButton_3.clicked.connect(self.clear)
 
-    def loadNueronNames(self):
-        names = []
+    def initDrowingPlase(self):
+        self.placeForDrawing = [[0 for j in range(0, self.placeWidth)] for i in range(0, self.placeHeight)]
+        self.updateDrowingPlace()
+        for i in range(self.placeWidth):
+            for j in range(self.placeHeight):
+                getattr(self, 'pushButton_' + str(j) + str(i)).clicked.connect(partial(self.drowingPlaseHandler,j,i))
 
-        filePath, _ = QFileDialog.getOpenFileName(self,"Open Image", "","text files (*.txt)")
+    def drowingPlaseHandler(self,i,j):
+        if self.placeForDrawing[i][j] == 1:
+            self.placeForDrawing[i][j] = 0
+        else:
+            self.placeForDrawing[i][j] = 1
+
+        self.updateDrowingPlace()
+
+    def updateDrowingPlace(self):
+        for i in range(self.placeWidth):
+            for j in range(self.placeHeight):
+                backgroundColor = "white"
+                if self.placeForDrawing[j][i] == 1:
+                    backgroundColor = "black"
+
+                getattr(self, 'pushButton_' + str(j) + str(i)).setStyleSheet("background : " + backgroundColor)
+
+
+    def loadNueronNames(self):
+        filePath, _ = QFileDialog.getOpenFileName(self,"Open file with names", "","text files (*.txt)")
         if filePath == "":
             return
 
         with open(filePath, encoding = 'utf-8') as f:
-            for line in f:
-                names.append([line.split()])
+                self.neuronNames = ([f.readline().split()])[0]
 
-        self.neuralNetwork = NeuralNetwork(names)
+        self.neuralNetwork = NeuralNetwork(self.neuronNames)
+        self.resLoadSettingsLabel.setText("Создано " + str(len(self.neuronNames)) + " нейронов")
+        self.comboBox.addItems(self.neuronNames)
 
-    def clear(self):
-        self.label.setPixmap(self.canvas)
+    def clean(self):
+        self.placeForDrawing = [[0 for j in range(0, self.placeWidth)] for i in range(0, self.placeHeight)]
+        self.updateDrowingPlace()
 
-    def save(self):
-        filePath, _ = QFileDialog.getSaveFileName(self, "Save Image", "",
-                                                  "PNG(*.png);;JPEG(*.jpg *.jpeg);;All Files(*.*) ")
-
+    def savePicture(self):
+        filePath, _ = QFileDialog.getOpenFileName(self, "Open Image", "", "text files (*.txt)")
         if filePath == "":
             return
-        im = self.label.pixmap().toImage().convertToFormat(QImage.Format_Mono, Qt.MonoOnly).scaled(33,33, transformMode=1)
-        for i in range(0,32):
-            for j in range(0,32):
-                if im.pixelColor(i,j).getRgb() != (255,255,255,255):
-                    im.setPixelColor(i,j, QtGui.QColor(0, 0, 0,255))
-        im.save(filePath, quality=100)
 
+        if self.matrixSaver.savePicture(filePath, self.placeForDrawing) is True:
+            QMessageBox.information(self, "Сохранение", "Файл успешно сохранен", QMessageBox.Ok)
+        else:
+            QMessageBox.Critical(self, "Сохранение", "Произошла ошибка при сохнарении", QMessageBox.Ok)
+
+
+    def loadPicture(self):
+        filePath, _ = QFileDialog.getSaveFileName(self, "Load Image", "","text files (*.txt)")
+        if filePath == "":
+            return
+
+        if self.matrixSaver.checkFile(filePath) is False:
+            QMessageBox.Critical(self, "Загрузка", "Файл не подходит", QMessageBox.Ok)
+            return
+        else:
+            self.placeForDrawing = self.matrixSaver.loadPicture(filePath)
+            self.updateDrowingPlace()
+            QMessageBox.information(self, "Загрузка", "Файл успешно загружен", QMessageBox.Ok)
+
+
+    def recognizeForLerning(self):
+        neuronName = self.comboBox.currentText()
+        neuronResult = self.neuralNetwork.getNeuronResult(neuronName, self.placeForDrawing)
+        if neuronResult is True:
+            self.resNeuronLabel.setText("верно")
+            self.resNeuronLabel.setStyleSheet("color : green")
+        else:
+            self.resNeuronLabel.setText("не верно")
+            self.resNeuronLabel.setStyleSheet("color : red")
+
+    def punishNeuron(self):
+        self.neuralNetwork.punishNeuron()
+
+    def recognize(self):
+        result = self.neuralNetwork.recognize(self.placeForDrawing)
+        if result is False:
+            self.resNouralNetworkLabel.setText("Не распознано!")
+            self.resNouralNetworkLabel.setStyleSheet("color : red")
+        else:
+            self.resNouralNetworkLabel.setText("На картинке изображена буква " + str(result))
+            self.resNouralNetworkLabel.setStyleSheet("color : green")
 
 if __name__ == '__main__':
     import sys
