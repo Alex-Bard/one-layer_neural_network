@@ -18,7 +18,7 @@ class NeuralNetwork(object):
         for neuron in self.neurons:
             if neuron.recognize(input):
                 numberOfFiredNeurons += 1
-                nameFiredNeuron = neuron.getName
+                nameFiredNeuron = neuron.name
 
         if numberOfFiredNeurons != 1:
             return False

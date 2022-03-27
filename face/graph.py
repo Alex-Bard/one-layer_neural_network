@@ -80,7 +80,7 @@ class Ui(QtWidgets.QMainWindow, Form):
         self.updateDrowingPlace()
 
     def savePicture(self):
-        filePath, _ = QFileDialog.getOpenFileName(self, "Open Image", "", "text files (*.txt)")
+        filePath, _ = QFileDialog.getSaveFileName(self, "Open Image", "", "text files (*.data)")
         if filePath == "":
             return
 
@@ -91,7 +91,7 @@ class Ui(QtWidgets.QMainWindow, Form):
 
 
     def loadPicture(self):
-        filePath, _ = QFileDialog.getSaveFileName(self, "Load Image", "","text files (*.txt)")
+        filePath, _ = QFileDialog.getOpenFileName(self, "Load Image", "","text files (*.data)")
         if filePath == "":
             return
 
