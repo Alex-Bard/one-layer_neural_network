@@ -36,6 +36,7 @@ class Ui(QtWidgets.QMainWindow, Form):
         self.punishButton.clicked.connect(self.punishNeuron)
         self.recognizeButton.clicked.connect(self.recognize)
 
+        self.setWindowTitle("Однослойная нейронная сеть")
         # self.pushButton_3.clicked.connect(self.clear)
 
     def initDrowingPlase(self):
