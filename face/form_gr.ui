@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
+ <class>OneLayerNeuralNetwork</class>
+ <widget class="QMainWindow" name="OneLayerNeuralNetwork">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -666,7 +666,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>Рспознать </string>
+      <string>Распознать </string>
      </property>
     </widget>
     <widget class="QLabel" name="label_4">
@@ -744,7 +744,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>Рспознать </string>
+      <string>Распознать </string>
      </property>
     </widget>
     <widget class="QLabel" name="label_7">
