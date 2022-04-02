@@ -1,5 +1,5 @@
 from pesistenseLayer.MatrixSaver import MatrixSaver
-
+import random
 
 class Neuron(object):
     matrixSaver = MatrixSaver()
@@ -51,13 +51,11 @@ class Neuron(object):
         self.matrixSaver.saveMatrixInFile(self.name, self.inputWeights)
 
     def createRaudomInputWeights(self):
-        randomMatrix = [[0, 1, 0, 0, 0],
-                        [0, 0, 0, 0, 1],
-                        [0, 0, 0, 1, 0],
-                        [0, 0, 1, 1, 0],
-                        [1, 0, 1, 0, 0],
-                        [0, 0, 0, 1, 0],
-                        [0, 0, 1, 0, 0]]
+        randomMatrix = [[0 for j in range(0, 32)] for i in range(0, 32)]
+        for i in range(len(randomMatrix)):
+            for j in range(len(randomMatrix[i])):
+                randomMatrix[i][j] = random.randint(0, 1)
+
         return randomMatrix
 
 

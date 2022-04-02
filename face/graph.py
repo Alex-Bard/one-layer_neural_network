@@ -18,16 +18,20 @@ Form, _ = uic.loadUiType('face/form_gr.ui')
 class Ui(QtWidgets.QMainWindow, Form):
     matrixSaver = MatrixSaver()
     neuralNetwork = None
-    placeForDrawing = [[],[]]
+    Image = None
     neuronNames = []
-    placeWidth = 5
-    placeHeight = 7
+
+    placeWidth = 32
+    placeHeight = 32
+
+
+    drawing = False
+    brushSize = 30
 
     def __init__(self):
         super(Ui, self).__init__()
         self.setupUi(self)
         self.loadButton.clicked.connect(self.loadNueronNames)
-        self.initDrowingPlase()
         self.cleanPitureButton.clicked.connect(self.clean)
         self.savePictureButton.clicked.connect(self.savePicture)
         self.LoadPictureButton.clicked.connect(self.loadPicture)
@@ -38,29 +42,15 @@ class Ui(QtWidgets.QMainWindow, Form):
 
         # self.pushButton_3.clicked.connect(self.clear)
 
-    def initDrowingPlase(self):
-        self.placeForDrawing = [[0 for j in range(0, self.placeWidth)] for i in range(0, self.placeHeight)]
-        self.updateDrowingPlace()
-        for i in range(self.placeWidth):
-            for j in range(self.placeHeight):
-                getattr(self, 'pushButton_' + str(j) + str(i)).clicked.connect(partial(self.drowingPlaseHandler,j,i))
+        self.canvas = QtGui.QPixmap(self.paintingLabel.size())
+        self.canvas.fill(Qt.white)
+        self.paintingLabel.setPixmap(self.canvas)
+        self.brushColor = Qt.black
+        self.lastPoint = QPoint()
 
-    def drowingPlaseHandler(self,i,j):
-        if self.placeForDrawing[i][j] == 1:
-            self.placeForDrawing[i][j] = 0
-        else:
-            self.placeForDrawing[i][j] = 1
-
-        self.updateDrowingPlace()
-
-    def updateDrowingPlace(self):
-        for i in range(self.placeWidth):
-            for j in range(self.placeHeight):
-                backgroundColor = "white"
-                if self.placeForDrawing[j][i] == 1:
-                    backgroundColor = "black"
-
-                getattr(self, 'pushButton_' + str(j) + str(i)).setStyleSheet("background : " + backgroundColor)
+        self.paintingLabel.mousePressEvent = self.mousePressEventForLabel
+        self.paintingLabel.mouseMoveEvent = self.mouseMoveEventForLabel
+        self.paintingLabel.mouseReleaseEvent = self.mouseReleaseEventForLabel
 
 
     def loadNueronNames(self):
@@ -76,37 +66,32 @@ class Ui(QtWidgets.QMainWindow, Form):
         self.comboBox.addItems(self.neuronNames)
 
     def clean(self):
-        self.placeForDrawing = [[0 for j in range(0, self.placeWidth)] for i in range(0, self.placeHeight)]
-        self.updateDrowingPlace()
+        self.paintingLabel.setPixmap(self.canvas)
+        self.pixMapToImage()
+        self.printImage()
 
     def savePicture(self):
-        filePath, _ = QFileDialog.getSaveFileName(self, "Open Image", "", "text files (*.data)")
+        filePath, _ = QFileDialog.getSaveFileName(self, "Save Image", "", "BMP(*.bmp) ")
+
         if filePath == "":
             return
 
-        if self.matrixSaver.savePicture(filePath, self.placeForDrawing) is True:
+        if self.Image.save(filePath, quality=100) is True:
             QMessageBox.information(self, "Сохранение", "Файл успешно сохранен", QMessageBox.Ok)
         else:
             QMessageBox.Critical(self, "Сохранение", "Произошла ошибка при сохнарении", QMessageBox.Ok)
 
-
     def loadPicture(self):
-        filePath, _ = QFileDialog.getOpenFileName(self, "Load Image", "","text files (*.data)")
+        filePath, _ = QFileDialog.getOpenFileName(self, "Load Image", "","BMP(*.bmp) ")
         if filePath == "":
             return
-
-        if self.matrixSaver.checkFile(filePath) is False:
-            QMessageBox.Critical(self, "Загрузка", "Файл не подходит", QMessageBox.Ok)
-            return
-        else:
-            self.placeForDrawing = self.matrixSaver.loadPicture(filePath)
-            self.updateDrowingPlace()
-            QMessageBox.information(self, "Загрузка", "Файл успешно загружен", QMessageBox.Ok)
+        self.pixMapToImage()
+        self.printImage()
 
 
     def recognizeForLerning(self):
         neuronName = self.comboBox.currentText()
-        neuronResult = self.neuralNetwork.getNeuronResult(neuronName, self.placeForDrawing)
+        neuronResult = self.neuralNetwork.getNeuronResult(neuronName, self.getMatrixFromImage())
         if neuronResult is True:
             self.resNeuronLabel.setText("верно")
             self.resNeuronLabel.setStyleSheet("color : green")
@@ -118,13 +103,56 @@ class Ui(QtWidgets.QMainWindow, Form):
         self.neuralNetwork.punishNeuron()
 
     def recognize(self):
-        result = self.neuralNetwork.recognize(self.placeForDrawing)
+        result = self.neuralNetwork.recognize(self.getMatrixFromImage())
         if result is False:
             self.resNouralNetworkLabel.setText("Не распознано!")
             self.resNouralNetworkLabel.setStyleSheet("color : red")
         else:
             self.resNouralNetworkLabel.setText("На картинке изображена буква " + str(result))
             self.resNouralNetworkLabel.setStyleSheet("color : green")
+
+    def mousePressEventForLabel(self, event):
+        if event.button() == Qt.LeftButton:
+            self.drawing = True
+            self.lastPoint = event.pos()
+
+    def mouseMoveEventForLabel(self, e):
+        if (e.buttons() and Qt.LeftButton) and self.drawing:
+            painter = QPainter(self.paintingLabel.pixmap())
+            print(self.brushColor, self.brushSize,
+                  Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)
+            painter.setPen(QPen(self.brushColor, self.brushSize,
+                                Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+            painter.drawLine(self.lastPoint, e.pos())
+            self.lastPoint = e.pos()
+            self.update()
+
+    def mouseReleaseEventForLabel(self, event):
+        if event.button() == Qt.LeftButton:
+            self.drawing = False
+
+            self.pixMapToImage()
+            self.printImage()
+
+    def pixMapToImage(self):
+        self.Image = self.paintingLabel.pixmap().toImage().\
+            convertToFormat(QImage.Format_Mono, Qt.MonoOnly).scaled(self.placeWidth,self.placeHeight, transformMode=1)
+
+    def printImage(self):
+        pixmap = QtGui.QPixmap(self.Image)
+        pixmap = pixmap.scaledToWidth(251)
+        self.paintingLabel.setPixmap(pixmap)
+
+    def getMatrixFromImage(self):
+        matrix = [[0 for j in range(0, self.placeWidth)] for i in range(0, self.placeHeight)]
+        for i in range(0, self.placeWidth):
+            for j in range(0, self.placeHeight):
+                if self.Image.pixelColor(i, j).getRgb() == (255, 255, 255, 255):
+                    matrix[i][j] = 0
+                else:
+                    matrix[i][j] = 1
+        return matrix
+
 
 if __name__ == '__main__':
     import sys
