@@ -15,15 +15,18 @@ class NeuralNetwork(object):
 
         numberOfFiredNeurons = 0
         nameFiredNeuron = ""
+        coefFiredNeuron = 0
         for neuron in self.neurons:
-            if neuron.recognize(input):
+            coef = neuron.recognize(input)
+            if coef >= 1:
                 numberOfFiredNeurons += 1
                 nameFiredNeuron = neuron.name
+                coefFiredNeuron = coef
 
         if numberOfFiredNeurons != 1:
-            return False
+            return False, 0
         else:
-            return nameFiredNeuron
+            return nameFiredNeuron, coefFiredNeuron
 
     def getNeuronResult(self, neuronName, input):
         for neuron in self.neurons:

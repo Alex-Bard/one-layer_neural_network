@@ -271,7 +271,7 @@
       <rect>
        <x>120</x>
        <y>170</y>
-       <width>151</width>
+       <width>141</width>
        <height>21</height>
       </rect>
      </property>
@@ -283,13 +283,26 @@
      <property name="geometry">
       <rect>
        <x>110</x>
-       <y>200</y>
+       <y>220</y>
        <width>81</width>
        <height>23</height>
       </rect>
      </property>
      <property name="text">
       <string>Не верно!</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="resNeuronLabel_2">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>190</y>
+       <width>251</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
      </property>
     </widget>
    </widget>
@@ -337,6 +350,19 @@
        <x>80</x>
        <y>80</y>
        <width>181</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="resNouralNetworkLabel_2">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>100</y>
+       <width>241</width>
        <height>21</height>
       </rect>
      </property>

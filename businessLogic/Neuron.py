@@ -25,10 +25,10 @@ class Neuron(object):
 
         if sum >= self.limit:
             self.lastResult = True
-            return True
+            return sum/self.limit
         else:
             self.lastResult = False
-            return False
+            return sum / self.limit
 
     def punishNeuron(self):
         for i in range(len(self.inputWeights)):

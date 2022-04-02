@@ -41,7 +41,6 @@ class Ui(QtWidgets.QMainWindow, Form):
         self.recognizeButton.clicked.connect(self.recognize)
 
         self.setWindowTitle("Однослойная нейронная сеть")
-        # self.pushButton_3.clicked.connect(self.clear)
 
         self.canvas = QtGui.QPixmap(self.paintingLabel.size())
         self.canvas.fill(Qt.white)
@@ -93,24 +92,28 @@ class Ui(QtWidgets.QMainWindow, Form):
     def recognizeForLerning(self):
         neuronName = self.comboBox.currentText()
         neuronResult = self.neuralNetwork.getNeuronResult(neuronName, self.getMatrixFromImage())
-        if neuronResult is True:
+        if neuronResult >= 1:
             self.resNeuronLabel.setText("верно")
             self.resNeuronLabel.setStyleSheet("color : green")
         else:
             self.resNeuronLabel.setText("не верно")
             self.resNeuronLabel.setStyleSheet("color : red")
+        self.resNeuronLabel_2.setText("коэффициент точности: " + str(round(neuronResult, 2)))
+
 
     def punishNeuron(self):
         self.neuralNetwork.punishNeuron()
 
     def recognize(self):
-        result = self.neuralNetwork.recognize(self.getMatrixFromImage())
+        result, coef = self.neuralNetwork.recognize(self.getMatrixFromImage())
         if result is False:
             self.resNouralNetworkLabel.setText("Не распознано!")
             self.resNouralNetworkLabel.setStyleSheet("color : red")
         else:
             self.resNouralNetworkLabel.setText("На картинке изображена буква " + str(result))
             self.resNouralNetworkLabel.setStyleSheet("color : green")
+            self.resNouralNetworkLabel_2.setStyleSheet("color : green")
+            self.resNouralNetworkLabel_2.setText("C коэффициентом точности " + str(round(coef, 2)))
 
     def mousePressEventForLabel(self, event):
         if event.button() == Qt.LeftButton:
