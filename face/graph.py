@@ -79,7 +79,7 @@ class Ui(QtWidgets.QMainWindow, Form):
         if self.Image.save(filePath, quality=100) is True:
             QMessageBox.information(self, "Сохранение", "Файл успешно сохранен", QMessageBox.Ok)
         else:
-            QMessageBox.Critical(self, "Сохранение", "Произошла ошибка при сохнарении", QMessageBox.Ok)
+            QMessageBox.Critical(self, "Сохранение", "Произошла ошибка при сохранении", QMessageBox.Ok)
 
     def loadPicture(self):
         filePath, _ = QFileDialog.getOpenFileName(self, "Load Image", "","BMP(*.bmp) ")
