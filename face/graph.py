@@ -85,8 +85,10 @@ class Ui(QtWidgets.QMainWindow, Form):
         filePath, _ = QFileDialog.getOpenFileName(self, "Load Image", "","BMP(*.bmp) ")
         if filePath == "":
             return
+        pixmap = QtGui.QPixmap(filePath)
+        pixmap = pixmap.scaledToWidth(251)
+        self.paintingLabel.setPixmap(pixmap)
         self.pixMapToImage()
-        self.printImage()
 
 
     def recognizeForLerning(self):
@@ -123,8 +125,7 @@ class Ui(QtWidgets.QMainWindow, Form):
     def mouseMoveEventForLabel(self, e):
         if (e.buttons() and Qt.LeftButton) and self.drawing:
             painter = QPainter(self.paintingLabel.pixmap())
-            print(self.brushColor, self.brushSize,
-                  Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)
+
             painter.setPen(QPen(self.brushColor, self.brushSize,
                                 Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
             painter.drawLine(self.lastPoint, e.pos())
